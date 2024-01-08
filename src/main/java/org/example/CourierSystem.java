@@ -13,13 +13,13 @@ public class CourierSystem {
                 new Order(2, 150, 0, 1000),
                 new Order(3, 50, 0, 600),
                 new Order(6, 20, 0, 600),
-                new Order(4, -200, -5, 6000),
+                new Order(4, -200, 0, 6000),
                 new Order(5, 100, 30, 300)
         );
 
         List<ActorRef> courierActors = new ArrayList<>();
         for (int i = 0; i < 1; i++) {
-            courierActors.add(system.actorOf(Props.create(CourierActor.class, 300, orders), "courierActor" + i));
+            courierActors.add(system.actorOf(Props.create(CourierActor.class, 400, orders), "courierActor" + i));
         }
 
         ActorRef orderActor = system.actorOf(Props.create(OrderActor.class, courierActors, orders), "orderActor");

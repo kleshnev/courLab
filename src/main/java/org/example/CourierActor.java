@@ -27,7 +27,9 @@ public class CourierActor extends AbstractActor {
                 .build();
     }
 
+
     private void handleOrderRequest(OrderActor.RequestOrders request) {
+        //List<Order> optimalRoute = TSPSolver.solveTSP(request.getOrders(), maxDistance);
         List<Order> optimalRoute = TSPSolver.solveTSP(request.getOrders(), maxDistance);
         int totalProfit = calculateTotalProfit(optimalRoute);
 
