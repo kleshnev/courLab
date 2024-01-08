@@ -33,8 +33,7 @@ class OrderActor extends AbstractActor {
     }
 
     private void handleCourierResponse(CourierResponse response) {
-        // Обработать ответ от курьера и обновить состояние заказа или курьера
-        // ...
+
         System.out.println("Courier " + response.getCourierActor() +
                 " planned route: " + response.getPlannedRoute() +
                 " with total profit " + response.getTotalProfit());

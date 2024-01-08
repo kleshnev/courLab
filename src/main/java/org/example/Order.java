@@ -18,7 +18,9 @@ class Order {
     public int getOrderId() {
         return orderId;
     }
-
+    public String getOrderName() {
+        return "Order"+ orderId;
+    }
     public int getX() {
         return x;
     }

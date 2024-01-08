@@ -9,10 +9,12 @@ public class CourierSystem {
         ActorSystem system = ActorSystem.create("CourierSystem");
 
         List<Order> orders = Arrays.asList(
-                new Order(1, 100, 10, 500),
-                new Order(2, 200, 10, 1000),
-                new Order(3, 50, 10, 600),
-                new Order(4, -100, -5, 300)
+                new Order(1, 100, 0, 500),
+                new Order(2, 150, 0, 1000),
+                new Order(3, 50, 0, 600),
+                new Order(6, 20, 0, 600),
+                new Order(4, -200, -5, 6000),
+                new Order(5, 100, 30, 300)
         );
 
         List<ActorRef> courierActors = new ArrayList<>();

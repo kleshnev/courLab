@@ -4,8 +4,15 @@ import akka.actor.*;
 import akka.japi.pf.ReceiveBuilder;
 
 import java.util.*;
-class CourierActor extends AbstractActor {
-    private final int maxDistance;
+import akka.actor.AbstractActor;
+import akka.japi.pf.ReceiveBuilder;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+public class CourierActor extends AbstractActor {
+    private int maxDistance;
     private final List<Order> orders;
 
     public CourierActor(int maxDistance, List<Order> orders) {
@@ -21,43 +28,46 @@ class CourierActor extends AbstractActor {
     }
 
     private void handleOrderRequest(OrderActor.RequestOrders request) {
-        List<Order> availableOrders = filterOrdersByDistance(request.getOrders(), 0, 0);
-        Collections.sort(availableOrders, Comparator.comparingDouble(order -> order.getDistanceTo(0, 0) / (double) order.getPrice()));
+        List<Order> optimalRoute = TSPSolver.solveTSP(request.getOrders(), maxDistance);
+        int totalProfit = calculateTotalProfit(optimalRoute);
 
-        List<Order> plannedRoute = new ArrayList<>();
-        int remainingDistance = maxDistance;
+        System.out.println("Courier " + getSelf().path().name() + " planned route...");
         int courierX = 0;
         int courierY = 0;
 
-        System.out.println("Courier " + getSelf().path().name() + " is planning the route...");
 
-        for (Order order : availableOrders) {
-            double distanceToOrder = order.getDistanceTo(courierX, courierY);
-            System.out.println("Order " + order.getOrderId() + ": Distance - " + distanceToOrder + ", Profit - " + order.getPrice());
-            if (distanceToOrder <= remainingDistance) {
-                plannedRoute.add(order);
-                remainingDistance -= distanceToOrder;
-                courierX = order.getX();
-                courierY = order.getY();
-            }
-        }
-
-        int totalProfit = plannedRoute.stream().mapToInt(Order::getPrice).sum();
-
-        // Выводим маршрут курьера
         System.out.println("Courier " + getSelf().path().name() + " planned route with total profit " + totalProfit);
-        System.out.println("Visualizing route for Courier " + getSelf().path().name() + ":");
-        for (Order order : plannedRoute) {
-            System.out.println("Order " + order.getOrderId() + " -> X: " + order.getX() + ", Y: " + order.getY());
+        System.out.println("0) Start: " + "X:"+ courierX + ", Y: " + courierY+ " ("+maxDistance+" distance left)");
+        int step = 1;
+        for (Order order : optimalRoute) {
+            double distanceToOrder = order.getDistanceTo(courierX, courierY);
+            maxDistance -= distanceToOrder;
+            System.out.println(step+")" + " Order " + order.getOrderId() + ", X: " + order.getX() + ", Y: " + order.getY()
+                    + ". Price= " +  order.getPrice() + ", (" +
+                     maxDistance + " distance left)");
+            courierX = order.getX();
+            courierY = order.getY();
+            step++;
         }
         System.out.println();
 
-        getSender().tell(new CourierResponse(getSelf(), plannedRoute, totalProfit), getSelf());
+        getSender().tell(new CourierResponse(getSelf(), optimalRoute, totalProfit), getSelf());
     }
 
 
 
 
+
+
+
+
+    private int calculateTotalProfit(List<Order> route) {
+        int totalProfit = 0;
+        for (Order order : route) {
+            totalProfit += order.getPrice();
+        }
+        return totalProfit;
+    }
 
     private List<Order> filterOrdersByDistance(List<Order> allOrders, int courierX, int courierY) {
         List<Order> filteredOrders = new ArrayList<>();
@@ -70,3 +80,4 @@ class CourierActor extends AbstractActor {
         return filteredOrders;
     }
 }
+
