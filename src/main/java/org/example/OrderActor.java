@@ -4,7 +4,7 @@ import akka.actor.*;
 import akka.japi.pf.ReceiveBuilder;
 
 import java.util.*;
-class OrderActor extends AbstractActor {
+public class OrderActor extends AbstractActor {
     private final List<ActorRef> courierActors;
     private final List<Order> orders;
 
@@ -32,22 +32,28 @@ class OrderActor extends AbstractActor {
         }
     }
 
+    private static final Object lock = new Object(); // Добавляем объект для синхронизации вывода
+
+// ... (оставляем остальной код без изменений)
+
     private void handleCourierResponse(CourierResponse response) {
+        synchronized (lock) {
+            System.out.println("Courier " + response.getCourierActor().path().name() +
+                    " planned route: " + response.getPlannedRoute() +
+                    " with total profit " + response.getTotalProfit());
 
-        System.out.println("Courier " + response.getCourierActor() +
-                " planned route: " + response.getPlannedRoute() +
-                " with total profit " + response.getTotalProfit());
-
-        // Визуализация маршрута курьера и выбранных заказов
-        System.out.println("Visualizing route:");
-        for (Order order : orders) {
-            if (response.getPlannedRoute().contains(order)) {
-                System.out.println("Order " + order.getOrderId() + " -> X: " + order.getX() + ", Y: " + order.getY());
-            } else {
-                System.out.println("Order " + order.getOrderId() + " not selected");
+            // Визуализация маршрута курьера и выбранных заказов
+            System.out.println("Visualizing route for Courier " + response.getCourierActor().path().name() + ":");
+            for (Order order : orders) {
+                if (response.getPlannedRoute().contains(order)) {
+                    order.setAssignedCourier(response.getCourierActor()); // Помечаем заказы выбранным курьером
+                    System.out.println("Order " + order.getOrderId() + " -> X: " + order.getX() + ", Y: " + order.getY());
+                } else {
+                    System.out.println("Order " + order.getOrderId() + " not selected");
+                }
             }
+            System.out.println();
         }
-        System.out.println();
     }
 
     static class StartPlanning {

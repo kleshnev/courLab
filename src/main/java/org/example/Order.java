@@ -1,11 +1,21 @@
 package org.example;
 
+import akka.actor.ActorRef;
+
 class Order {
     private final int orderId;
     private final int x;
     private final int y;
     private final int price;
+    private ActorRef assignedCourier; // Добавляем поле для отслеживания выбранного курьера
 
+    public ActorRef getAssignedCourier() {
+        return assignedCourier;
+    }
+
+    public void setAssignedCourier(ActorRef assignedCourier) {
+        this.assignedCourier = assignedCourier;
+    }
     public Order(int orderId, int x, int y, int price) {
         this.orderId = orderId;
         this.x = x;
