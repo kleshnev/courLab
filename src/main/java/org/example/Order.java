@@ -42,6 +42,13 @@ class Order {
     public int getPrice() {
         return price;
     }
+    @Override
+    public String toString() {
+        return "orderId=" + orderId +
+                ", x=" + x +
+                ", y=" + y +
+                ", price=" + price;
+    }
 }
 
 

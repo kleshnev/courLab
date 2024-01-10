@@ -42,22 +42,27 @@ public class OrderActor extends AbstractActor {
 
     private void handleCourierResponse(CourierResponse response) {
         synchronized (lock) {
-            System.out.println("Courier " + response.getCourierActor().path().name() +
-                    " planned route: " + response.getPlannedRoute() +
-                    " with total profit " + response.getTotalProfit());
+//            System.out.println("Courier " + response.getCourierActor().path().name() +
+//                    " planned route: " + response.getPlannedRoute() +
+//                    " with total profit " + response.getTotalProfit());
 
-            System.out.println("Visualizing route for Courier " + response.getCourierActor().path().name() + ":");
+           // System.out.println("Assigning orders for Courier " + response.getCourierActor().path().name() + ":");
             for (Order order : orders) {
                 if (response.getPlannedRoute().contains(order)) {
                     order.setAssignedCourier(response.getCourierActor());
-                    System.out.println("Order " + order.getOrderId() + " -> X: " + order.getX() + ", Y: " + order.getY());
+                    //System.out.println("Order " + order.getOrderId() + " assigned to Courier " + response.getCourierActor().path().name());
                 } else {
-                    System.out.println("Order " + order.getOrderId() + " not selected");
+                   // System.out.println("Order " + order.getOrderId() + " not selected");
                 }
             }
             System.out.println();
         }
+        if (response.getCourierActor() == courierActors.get(courierActors.size() - 1)) {
+            printFinalResults();
+        }
     }
+
+
 
     private void handleOrderPriceResponse(OrderPriceResponse response) {
         synchronized (lock) {
@@ -69,6 +74,33 @@ public class OrderActor extends AbstractActor {
             response.getCourierActor().tell(new RequestOrders(List.of(response.getOrder())), getSelf());
         }
     }
+    private void printFinalResults() {
+        synchronized (lock) {
+            System.out.println("Final Results:");
+            for (ActorRef courierActor : courierActors) {
+                System.out.println("Courier " + courierActor.path().name() + " - Assigned Orders and Route:");
+                List<Order> assignedOrders = new ArrayList<>();
+                for (Order order : orders) {
+                    if (order.getAssignedCourier() == courierActor) {
+                        assignedOrders.add(order);
+                    }
+                }
+
+                System.out.println("Assigned Orders: " + assignedOrders);
+                if (!assignedOrders.isEmpty()) {
+                    List<Order> plannedRoute = TSPSolver.solveTSP(assignedOrders, Integer.MAX_VALUE);
+                    System.out.println("Planned Route: ");
+                    for (Order order: plannedRoute) {
+                        System.out.println(order);
+                    }
+                    System.out.println();
+                } else {
+                    System.out.println("No orders assigned.");
+                }
+            }
+        }
+    }
+
 
     static class StartPlanning {
     }

@@ -54,24 +54,24 @@ public class CourierActor extends AbstractActor {
                 order.setAssignedCourier(getSelf());
             }
 
-            System.out.println("Courier " + getSelf().path().name() + " planned route...");
+          //  System.out.println("Courier " + getSelf().path().name() + " planned route...");
             int courierX = 0;
             int courierY = 0;
 
-            System.out.println("Courier " + getSelf().path().name() + " planned route with total profit " + totalProfit);
-            System.out.println("0) Start: " + "X:" + courierX + ", Y: " + courierY + " (" + maxDistance + " distance left)");
+            //System.out.println("Courier " + getSelf().path().name() + " planned route with total profit " + totalProfit);
+           // System.out.println("0) Start: " + "X:" + courierX + ", Y: " + courierY + " (" + maxDistance + " distance left)");
             int step = 1;
             for (Order order : optimalRoute) {
                 double distanceToOrder = order.getDistanceTo(courierX, courierY);
                 maxDistance -= distanceToOrder;
-                System.out.println(step + ")" + " Order " + order.getOrderId() + ", X: " + order.getX() + ", Y: " + order.getY()
-                        + ". Price= " + order.getPrice() + ", (" +
-                        maxDistance + " distance left)");
+//                System.out.println(step + ")" + " Order " + order.getOrderId() + ", X: " + order.getX() + ", Y: " + order.getY()
+//                        + ". Price= " + order.getPrice() + ", (" +
+//                        maxDistance + " distance left)");
                 courierX = order.getX();
                 courierY = order.getY();
                 step++;
             }
-            System.out.println();
+           // System.out.println();
         }
 
         getSender().tell(new CourierResponse(getSelf(), optimalRoute, totalProfit), getSelf());
