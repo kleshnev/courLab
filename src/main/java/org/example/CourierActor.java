@@ -3,12 +3,8 @@ package org.example;
 import akka.actor.*;
 import akka.japi.pf.ReceiveBuilder;
 
-import java.util.*;
-import akka.actor.AbstractActor;
-import akka.japi.pf.ReceiveBuilder;
-
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
 
 public class CourierActor extends AbstractActor {
@@ -23,28 +19,41 @@ public class CourierActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return ReceiveBuilder.create()
+                .match(RequestOrderPrice.class, this::handleOrderPriceRequest)
                 .match(OrderActor.RequestOrders.class, this::handleOrderRequest)
                 .build();
     }
 
-    private static final Object lock = new Object(); // Добавляем объект для синхронизации вывода
+    private static final Object lock = new Object();
 
-// ... (оставляем остальной код без изменений)
+    private void handleOrderPriceRequest(RequestOrderPrice request) {
+        Order order = request.getOrder();
+        double distanceToOrder = order.getDistanceTo(0, 0);
+        double price = calculatePrice(distanceToOrder);
+
+        getSender().tell(new OrderPriceResponse(getSelf(), order, price), getSelf());
+    }
+
+
+    private double calculatePrice(double distance) {
+        // Replace this with your actual logic for calculating the price based on distance
+        // For example, you can use a fixed rate per kilometer or any other pricing strategy.
+        // For now, let's assume a fixed rate of 1 unit per kilometer.
+        return distance * 1.0;
+    }
 
     private void handleOrderRequest(OrderActor.RequestOrders request) {
         List<Order> filteredOrders = filterOrdersByDistance(request.getOrders());
 
-        // Находим оптимальный маршрут
+        // Find the optimal route for the current order
         List<Order> optimalRoute = TSPSolver.solveTSP(filteredOrders, maxDistance);
         int totalProfit = calculateTotalProfit(optimalRoute);
 
-        // Помечаем заказы выбранным курьером
         synchronized (lock) {
             for (Order order : optimalRoute) {
                 order.setAssignedCourier(getSelf());
             }
 
-            // Выводим информацию о планируемом маршруте
             System.out.println("Courier " + getSelf().path().name() + " planned route...");
             int courierX = 0;
             int courierY = 0;
@@ -65,10 +74,8 @@ public class CourierActor extends AbstractActor {
             System.out.println();
         }
 
-        // Отправляем ответ с выбранным маршрутом обратно заказу
         getSender().tell(new CourierResponse(getSelf(), optimalRoute, totalProfit), getSelf());
     }
-
 
     private int calculateTotalProfit(List<Order> route) {
         int totalProfit = 0;
@@ -81,7 +88,7 @@ public class CourierActor extends AbstractActor {
     private List<Order> filterOrdersByDistance(List<Order> allOrders) {
         List<Order> filteredOrders = new ArrayList<>();
         for (Order order : allOrders) {
-            if (order.getAssignedCourier() == null) { // Исключаем заказы, которые уже были выбраны другими курьерами
+            if (order.getAssignedCourier() == null) {
                 double distanceToOrder = order.getDistanceTo(0, 0);
                 if (distanceToOrder <= maxDistance) {
                     filteredOrders.add(order);
